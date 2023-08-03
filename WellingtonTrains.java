@@ -53,7 +53,7 @@ public class WellingtonTrains {
         loadTrainLineData();
         UI.println("Loaded Train Lines");
         // The following is only needed for the Completion and Challenge
-        //loadTrainServicesData();
+        loadTrainServicesData();
         UI.println("Loaded Train Services");
         loadedData = true;
     }
@@ -228,6 +228,30 @@ public class WellingtonTrains {
         }
         if (!results) {
             UI.printf("No train lines found from %s to %s.", stationName, destinationName);
+        }
+    }
+
+    //completion
+
+    public void loadTrainServicesData() {
+        try {
+            Scanner lineNameScan = new Scanner(Path.of("data/train-lines.data"));
+            while (lineNameScan.hasNext()) {
+                String lineName = lineNameScan.next();
+                TrainLine line = trainLines.get(lineName);
+                List<String> timesScan = Files.readAllLines(Path.of("data/"+lineName+"-services.data"));
+                for (String times : timesScan) {
+                    TrainService service = new TrainService(line);
+                    line.addTrainService(service);
+                    Scanner timeScan = new Scanner(times);
+                    while (timeScan.hasNext()) {
+                        int time = timeScan.nextInt();
+                        service.addTime(time);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            UI.println("Train service file reading failed :(");
         }
     }
 }
