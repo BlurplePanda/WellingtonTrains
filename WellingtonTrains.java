@@ -120,8 +120,7 @@ public class WellingtonTrains {
 
     public void doMouse(String action, double x, double y) {
         if (action.equals("released")) {
-            /*# YOUR CODE HERE */
-
+            findClosest(x, y);
         }
     }
 
@@ -311,7 +310,7 @@ public class WellingtonTrains {
         }
     }
 
-    private int stnNextTime(Station station, TrainLine line, int startTime) {
+    public int stnNextTime(Station station, TrainLine line, int startTime) {
         int stnNum = line.getStations().indexOf(station);
         for (TrainService service : line.getTrainServices()) {
             int stnTime = service.getTimes().get(stnNum);
@@ -320,5 +319,21 @@ public class WellingtonTrains {
             }
         }
         return -1;
+    }
+
+    public void findClosest(double x, double y) {
+        UI.clearText();
+        Map<Double, Station> distances = new TreeMap<>();
+        for (Station station : stations.values()) {
+            double dist = Math.hypot(x-station.getXCoord(), y-station.getYCoord());
+            distances.put(dist, station);
+        }
+        UI.println("The ten closest stations are:");
+        for (int i=0; i < 10; i++) {
+            double distance = new ArrayList<>(distances.keySet()).get(i);
+            double realDist = distance/10;
+            String stnName = distances.get(distance).getName();
+            UI.printf("%s station, around %.2fkm away.\n", stnName, realDist);
+        }
     }
 }
