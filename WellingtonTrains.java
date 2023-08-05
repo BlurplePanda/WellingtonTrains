@@ -9,6 +9,7 @@
  */
 
 import ecs100.*;
+
 import java.util.*;
 import java.util.Map.Entry;
 import java.io.*;
@@ -17,8 +18,8 @@ import java.nio.file.*;
 /**
  * WellingtonTrains
  * A program to answer queries about Wellington train lines and timetables for
- *  the train services on those train lines.
- *
+ * the train services on those train lines.
+ * <p>
  * See the assignment page for a description of the program and what you have to do.
  */
 
@@ -90,14 +91,14 @@ public class WellingtonTrains {
             listStationsOnLine(this.lineName);
         });
         UI.addButton("Stations connected?", () -> {
-            checkConnected(this.stationName, this.destinationName);
+            printConnected(this.stationName, this.destinationName);
         });
         UI.addButton("Next Services", () -> {
             findNextServices(this.stationName, this.startTime);
         });
-        /*UI.addButton("Find Trip", () -> {
+        UI.addButton("Find Trip", () -> {
             findTrip(this.stationName, this.destinationName, this.startTime);
-        });*/
+        });
 
         UI.addButton("Quit", UI::quit);
         UI.setMouseListener(this::doMouse);
@@ -151,7 +152,7 @@ public class WellingtonTrains {
                 scan.nextLine();
                 TrainLine line = new TrainLine(name);
                 trainLines.put(name, line);
-                Scanner sc = new Scanner(Path.of("data/"+name+"-stations.data"));
+                Scanner sc = new Scanner(Path.of("data/" + name + "-stations.data"));
                 while (sc.hasNext()) {
                     String stnName = sc.next();
                     sc.nextLine();
@@ -202,6 +203,9 @@ public class WellingtonTrains {
                 UI.println(line.toString());
             }
         }
+        else {
+            UI.println("Please enter a valid station name.");
+        }
     }
 
     public void listStationsOnLine(String lineName) {
@@ -211,23 +215,38 @@ public class WellingtonTrains {
             for (Station station : line.getStations()) {
                 UI.println(station.toString());
             }
+        } else {
+            UI.println("Please enter a valid train line name.");
         }
     }
 
-    public void checkConnected(String stationName, String destinationName) {
-        UI.clearText();
-        boolean results = false;
+    public List<TrainLine> checkConnected(String stationName, String destinationName) {
+        List<TrainLine> results = new ArrayList<>();
         Station station = stations.get(stationName);
         Station destination = stations.get(destinationName);
         for (TrainLine line : trainLines.values()) {
             if (line.getStations().contains(station) && line.getStations().contains(destination)
-                && line.getStations().indexOf(station) < line.getStations().indexOf(destination)) {
-                UI.println(line.toString());
-                results = true;
+                    && line.getStations().indexOf(station) < line.getStations().indexOf(destination)) {
+                results.add(line);
             }
         }
-        if (!results) {
-            UI.printf("No train lines found from %s to %s.", stationName, destinationName);
+        return results;
+    }
+
+    public void printConnected(String stationName, String destinationName) {
+        UI.clearText();
+        if (stationName != null && destinationName != null) {
+            List<TrainLine> lines = checkConnected(stationName, destinationName);
+            if (lines.isEmpty()) {
+                UI.printf("No train lines found from %s to %s.", stationName, destinationName);
+            } else {
+                for (TrainLine line : lines) {
+                    UI.println(line.toString());
+                }
+            }
+        }
+        else {
+            UI.println("Please enter valid station/destination names.");
         }
     }
 
@@ -239,7 +258,7 @@ public class WellingtonTrains {
             while (lineNameScan.hasNext()) {
                 String lineName = lineNameScan.next();
                 TrainLine line = trainLines.get(lineName);
-                List<String> timesScan = Files.readAllLines(Path.of("data/"+lineName+"-services.data"));
+                List<String> timesScan = Files.readAllLines(Path.of("data/" + lineName + "-services.data"));
                 for (String times : timesScan) {
                     TrainService service = new TrainService(line);
                     line.addTrainService(service);
@@ -256,19 +275,50 @@ public class WellingtonTrains {
     }
 
     public void findNextServices(String stationName, int startTime) {
+        UI.clearText();
         Station station = stations.get(stationName);
         if (station != null) {
-            UI.clearText();
             for (TrainLine line : station.getTrainLines()) {
-                int stnNum = line.getStations().indexOf(station);
-                for (TrainService service : line.getTrainServices()) {
-                    int stnTime = service.getTimes().get(stnNum - 1);
-                    if (stnTime > startTime) {
-                        UI.println(line.toString() + " at " + stnTime);
-                        break;
-                    }
+                int departTime = stnNextTime(station, line, startTime);
+                if (departTime != -1) {
+                    UI.println(line.getName() + " at " + departTime);
                 }
             }
         }
+        else {
+            UI.println("Please enter a valid station name.");
+        }
+    }
+
+    public void findTrip(String stationName, String destinationName, int startTime) {
+        UI.clearText();
+        Station station = stations.get(stationName);
+        Station destination = stations.get(destinationName);
+        if (station != null && destination != null) {
+            int zones = Math.abs(station.getZone() - destination.getZone()) + 1;
+            for (TrainLine line : checkConnected(stationName, destinationName)) {
+                int depart = stnNextTime(station, line, startTime);
+                int arrive = stnNextTime(destination, line, startTime);
+                if (depart != -1 && arrive != -1) {
+                    UI.println(line.getName() + " line, departing at " + stationName + " at " + depart
+                            + " and arriving at " + destinationName + " at " + arrive
+                            + ", passing through " + zones + " fare zones.");
+                }
+            }
+        }
+        else {
+            UI.println("Please enter a valid station/destination name.");
+        }
+    }
+
+    private int stnNextTime(Station station, TrainLine line, int startTime) {
+        int stnNum = line.getStations().indexOf(station);
+        for (TrainService service : line.getTrainServices()) {
+            int stnTime = service.getTimes().get(stnNum);
+            if (stnTime > startTime) {
+                return stnTime;
+            }
+        }
+        return -1;
     }
 }
