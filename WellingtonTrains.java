@@ -3,9 +3,9 @@
 // You may not distribute it in any other way without permission.
 
 /* Code for COMP103 - 2023T2, Assignment 2
- * Name:
- * Username:
- * ID:
+ * Name: Amy Booth
+ * Username: boothamy
+ * ID: 300653766
  */
 
 import ecs100.*;
@@ -118,6 +118,9 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Handles mouse input (mouseListener)
+     */
     public void doMouse(String action, double x, double y) {
         if (action.equals("released")) {
             findClosest(x, y);
@@ -126,6 +129,9 @@ public class WellingtonTrains {
 
     // Methods for loading data and answering queries
 
+    /**
+     * Loads data of all stations from file into objects/maps/etc
+     */
     public void loadStationData() {
         try {
             Scanner scan = new Scanner(Path.of("data/stations.data"));
@@ -143,6 +149,9 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Loads data of all train lines from file into objects/fields
+     */
     public void loadTrainLineData() {
         try {
             Scanner scan = new Scanner(Path.of("data/train-lines.data"));
@@ -165,6 +174,9 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Print out all the stations!
+     */
     public void listAllStations() {
         UI.clearText();
         UI.println("All stations in region:\n----------");
@@ -173,6 +185,9 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Print out all the stations in alphabetical order.
+     */
     public void listStationsByName() {
         ArrayList<String> stnNames = new ArrayList<>();
         for (Station stn : stations.values()) {
@@ -186,6 +201,9 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Print all the train lines!
+     */
     public void listAllTrainLines() {
         UI.clearText();
         UI.println("All train lines in region:\n----------");
@@ -194,6 +212,11 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * List all the lines that go through a particular station
+     *
+     * @param stnName the station to check lines for
+     */
     public void listLinesOfStation(String stnName) {
         UI.clearText();
         Station stn = stations.get(stnName);
@@ -201,12 +224,16 @@ public class WellingtonTrains {
             for (TrainLine line : stn.getTrainLines()) {
                 UI.println(line.toString());
             }
-        }
-        else {
+        } else {
             UI.println("Please enter a valid station name.");
         }
     }
 
+    /**
+     * List all stations on a particular line
+     *
+     * @param lineName the train line to list stations for
+     */
     public void listStationsOnLine(String lineName) {
         UI.clearText();
         TrainLine line = trainLines.get(lineName);
@@ -219,6 +246,13 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Checks if two stations are connected via a train line
+     *
+     * @param stationName     the first station
+     * @param destinationName the second station
+     * @return a list of train lines that connect them (empty if not connected)
+     */
     public List<TrainLine> checkConnected(String stationName, String destinationName) {
         List<TrainLine> results = new ArrayList<>();
         Station station = stations.get(stationName);
@@ -232,6 +266,12 @@ public class WellingtonTrains {
         return results;
     }
 
+    /**
+     * Print out any lines that connect two stations.
+     *
+     * @param stationName     the first station
+     * @param destinationName the second station
+     */
     public void printConnected(String stationName, String destinationName) {
         UI.clearText();
         if (stationName != null && destinationName != null) {
@@ -243,14 +283,14 @@ public class WellingtonTrains {
                     UI.println(line.toString());
                 }
             }
-        }
-        else {
+        } else {
             UI.println("Please enter valid station/destination names.");
         }
     }
 
-    //completion
-
+    /**
+     * Loads all the train service data from files into objects/
+     */
     public void loadTrainServicesData() {
         try {
             Scanner lineNameScan = new Scanner(Path.of("data/train-lines.data"));
@@ -273,6 +313,12 @@ public class WellingtonTrains {
         }
     }
 
+    /**
+     * Find & print the next service departing from a station after a particular time
+     *
+     * @param stationName the station it departs from
+     * @param startTime   the current time (or time you want to know about)
+     */
     public void findNextServices(String stationName, int startTime) {
         UI.clearText();
         Station station = stations.get(stationName);
@@ -283,12 +329,18 @@ public class WellingtonTrains {
                     UI.println(line.getName() + " at " + departTime);
                 }
             }
-        }
-        else {
+        } else {
             UI.println("Please enter a valid station name.");
         }
     }
 
+    /**
+     * Find & print the next service(s) from one station to another after a certain time
+     *
+     * @param stationName     the first station
+     * @param destinationName second station
+     * @param startTime       time to be checked (eg current time)
+     */
     public void findTrip(String stationName, String destinationName, int startTime) {
         UI.clearText();
         Station station = stations.get(stationName);
@@ -304,12 +356,19 @@ public class WellingtonTrains {
                             + ", passing through " + zones + " fare zones.");
                 }
             }
-        }
-        else {
+        } else {
             UI.println("Please enter a valid station/destination name.");
         }
     }
 
+    /**
+     * Find the next service after a specified time on a specified line from a specified station
+     *
+     * @param station   the station it departs from
+     * @param line      the line the service must be on
+     * @param startTime the time it must be after
+     * @return the time it departs, or -1 if there aren't any
+     */
     public int stnNextTime(Station station, TrainLine line, int startTime) {
         int stnNum = line.getStations().indexOf(station);
         for (TrainService service : line.getTrainServices()) {
@@ -321,17 +380,23 @@ public class WellingtonTrains {
         return -1;
     }
 
+    /**
+     * Find the closest stations to a given point on the map
+     *
+     * @param x the x co-ord chosen
+     * @param y the y co-ord chosen
+     */
     public void findClosest(double x, double y) {
         UI.clearText();
         Map<Double, Station> distances = new TreeMap<>();
         for (Station station : stations.values()) {
-            double dist = Math.hypot(x-station.getXCoord(), y-station.getYCoord());
+            double dist = Math.hypot(x - station.getXCoord(), y - station.getYCoord());
             distances.put(dist, station);
         }
         UI.println("The ten closest stations are:");
-        for (int i=0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             double distance = new ArrayList<>(distances.keySet()).get(i);
-            double realDist = distance/10;
+            double realDist = distance / 10;
             String stnName = distances.get(distance).getName();
             UI.printf("%s station, around %.2fkm away.\n", stnName, realDist);
         }
