@@ -92,10 +92,10 @@ public class WellingtonTrains {
         UI.addButton("Stations connected?", () -> {
             checkConnected(this.stationName, this.destinationName);
         });
-        /*UI.addButton("Next Services", () -> {
+        UI.addButton("Next Services", () -> {
             findNextServices(this.stationName, this.startTime);
         });
-        UI.addButton("Find Trip", () -> {
+        /*UI.addButton("Find Trip", () -> {
             findTrip(this.stationName, this.destinationName, this.startTime);
         });*/
 
@@ -252,6 +252,23 @@ public class WellingtonTrains {
             }
         } catch (IOException e) {
             UI.println("Train service file reading failed :(");
+        }
+    }
+
+    public void findNextServices(String stationName, int startTime) {
+        Station station = stations.get(stationName);
+        if (station != null) {
+            UI.clearText();
+            for (TrainLine line : station.getTrainLines()) {
+                int stnNum = line.getStations().indexOf(station);
+                for (TrainService service : line.getTrainServices()) {
+                    int stnTime = service.getTimes().get(stnNum - 1);
+                    if (stnTime > startTime) {
+                        UI.println(line.toString() + " at " + stnTime);
+                        break;
+                    }
+                }
+            }
         }
     }
 }
